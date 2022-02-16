@@ -1,55 +1,56 @@
 /**
- * Implementation of a Data Frame
+ * Implementation of a Data Frame for message "transmission"
  */
 #include "dataFrame.h"
+#include "data.h"
 #include <stdio.h>
 
 /**
- * Function to create a new data frame
+ * Function to framing data together based on mode:
+ * Mode SYN: SYN Code (2222)
+ * Mode LENGTH: Message Length
+ * Mode MESSAGE: Encoded Message
  */
-void createDataFrame(struct dataFrame* frame) {
-    frame->synChar = (char*)malloc(16 * sizeof(char));
-    frame->messageLength = (char*)malloc(8 * sizeof(char));
-    frame->message = (char*)malloc((64 * 8) * sizeof(char));
-}
-
-/**
- * Function to delete an existing data frame
- */
-void deleteDataFrame(struct dataFrame* frame) {
-    free(frame->synChar);
-    free(frame->messageLength);
-    free(frame->message);
-}
-
-/**
- * Function to framing data together based on mode
- * Mode 1 - frame SYN Characters
- * Mode 2 - frame message
- */
-void frameData(struct dataFrame* frame, char* binaryChar, int mode) {
+void frameData(struct dataFrame* frame, char* binaryStr, enum dataEncoding mode) {
     switch(mode) {
-        case 1:
-            strcat(frame->synChar, binaryChar);
+        case SYN:
+            strcpy(frame->synChar, binaryStr);
             break;
-        case 2:
-            strcpy(frame->messageLength, binaryChar);
+        case LENGTH:
+            strcpy(frame->messageLength, binaryStr);
             break;
-        case 3:
-            strcat(frame->message, binaryChar);
+        case MESSAGE:
+            strcat(frame->message, binaryStr);
             break;
         default:
-            perror("Invalid Frame Mode Specified");
+            perror("Invalid Mode Specified. Expected: SYN or LENGTH or MESSAGE\n");
             exit(-1);
             break;
     }
 }
 
 /**
- * Function to deframe the encoded data
+ * Function to deframe the encoded data based on mode:
+ * Mode SYN: SYN Code (2222)
+ * Mode LENGTH: Message Length
+ * Mode MESSAGE: Encoded Message
  */
-char* deframeData(struct dataFrame frame) {
-    return frame.message;
+char* deframeData(struct dataFrame* frame, enum dataEncoding mode) {
+    switch(mode) {
+        case SYN:
+            return frame->synChar;
+            break;
+        case LENGTH:
+            return frame->messageLength;
+            break;
+        case MESSAGE:
+            return frame->message;
+            break;
+        default:
+            perror("Invalid Mode Specified. Expected: SYN or LENGTH or MESSAGE\n");
+            exit(-1);
+            break;
+    }
 }
 
 /**

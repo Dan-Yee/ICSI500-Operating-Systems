@@ -1,5 +1,5 @@
 /**
- * Specifications on the implementation of a data frame for message transmission
+ * Specifications on the implementation of a data frame for message "transmission"
  * Contains functions for the "Data Link" layer
  */
 #include <stdlib.h>
@@ -12,32 +12,24 @@
  * struct to represent a data frame that will be "sent"
  */
 struct dataFrame {
-    char* synChar;
-    char* messageLength;
-    char* message;
+    char synChar[17];
+    char messageLength[9];
+    char message[((64 * 8) + 1)];
 };
 
-/**
- * Function to create a new data frame
- */
-void createDataFrame(struct dataFrame*);
-
-/**
- * Function to delete an existing data frame
- */
-void deleteDataFrame(struct dataFrame*);
+enum dataEncoding {SYN, LENGTH, MESSAGE};
 
 /**
  * Function to framing data together based on mode
  * Mode 1 - frame SYN Characters
  * Mode 2 - frame message
  */
-void frameData(struct dataFrame*, char*, int);
+void frameData(struct dataFrame*, char*, enum dataEncoding);
 
 /**
  * Function to deframe the encoded data
  */
-char* deframeData(struct dataFrame);
+char* deframeData(struct dataFrame*, enum dataEncoding);
 
 /**
  * For testing purposes only
