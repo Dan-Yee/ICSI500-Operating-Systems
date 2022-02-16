@@ -2,7 +2,7 @@
  * Implementation of the "Physical Layer"
  * Implements functions for converting a char to binary string and parity checking
  */
-#include "physicalLayer.h"
+#include "data.h"
 
 /**
  * Function that converts a character to its binary form
@@ -23,7 +23,7 @@ char* charToBinary(const char character, char* result) {
  * Function that converts a binary string to int
  */
 int binaryToInt(const char* string) {
-    return (int) strtol(string, NULL, 2);
+    return (int)strtol(string, NULL, 2);
 }
 
 /**
@@ -37,7 +37,6 @@ char* addParityBit(char* string) {
             bitCount++;
     if(bitCount % 2 == 0)
         string[0] = '1';
-
     return string;
 }
 
