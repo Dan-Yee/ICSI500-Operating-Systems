@@ -2,11 +2,13 @@
  * Implementation of the Producer (Transmitter)
  */
 #include "producer.h"
+#include "errorCreate.h"
 
 void producer(void) {
+    srand(time(0));
     struct dataFrame* frame;
     char readBuffer[64];
-    int readCount;
+    int readCount, frameCount = 0;
     FILE* userInput = fopen("message.inpf", "r");
     FILE* producerOutput = fopen("pOutput.binf", "wb");
 
@@ -21,6 +23,7 @@ void producer(void) {
     }
     
     while(!feof(userInput)) {                                                                   // read until end of input file
+        frameCount++;
         char synCode[17] = "";
         char msgLength[9] = "";
         char nullTerminator[1] = "\0";
@@ -43,6 +46,12 @@ void producer(void) {
             frameData(frame, currentChar, MESSAGE);
         }
         frameData(frame, nullTerminator, MESSAGE);
+
+        // Error Creation Module - For testing, implement 1 bit error for every even frame "transmitted"
+        if(frameCount % 2 == 0) {
+            printf("Error(s) Introduced to Frame %d\n", frameCount);
+            addErrors(frame, 1);
+        }
 
         if((fwrite(frame, sizeof(struct dataFrame), 1, producerOutput)) != 1) {                 // "transmit" frame by writing it to file
             perror("Error Writing Data Frame\n");
