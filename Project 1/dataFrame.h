@@ -4,6 +4,7 @@
  */
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
 #ifndef DATAFRAME_HEADER
 #define DATAFRAME_HEADER

@@ -3,7 +3,6 @@
  */
 #include "dataFrame.h"
 #include "data.h"
-#include <stdio.h>
 
 /**
  * Function to framing data together based on mode:
