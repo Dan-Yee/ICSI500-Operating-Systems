@@ -24,21 +24,21 @@ void producer(char* fileName, enum producerMode mode, int numOfErrors) {
     }
     
     while(!feof(userInput)) {                                                                   // read until end of input file
+        char synCode[17] = "\0";
+        char msgLength[9] = "\0";
+        char checkSumBin[33] = "\0";
         frameCount++;
-        char synCode[17] = "";
-        char msgLength[9] = "";
-        char nullTerminator[1] = "\0";
         frame = malloc(sizeof(struct dataFrame));
 
         readCount = fread(&readBuffer, sizeof(char), 64, userInput);                            // read the next 64 characters of the message
 
         for(int i = 0; i < 2; i++)                                                              // create the SYN code (2222) and frame it
             strcat(synCode, addParityBit(charToBinary(22, synCode)));
-        strcat(synCode, nullTerminator);
+        strcat(synCode, "\0");
         frameData(frame, synCode, SYN);
 
         addParityBit(charToBinary(readCount, msgLength));                                       // frame the message length
-        strcat(msgLength, nullTerminator);
+        strcat(msgLength, "\0");
         frameData(frame, msgLength, LENGTH);
 
         for(int i = 0; i < readCount; i++) {                                                    // frame the encoded message
@@ -46,10 +46,11 @@ void producer(char* fileName, enum producerMode mode, int numOfErrors) {
             addParityBit(charToBinary(readBuffer[i], currentChar));
             frameData(frame, currentChar, MESSAGE);
         }
-        frameData(frame, nullTerminator, MESSAGE);
+        frameData(frame, "\0", MESSAGE);
 
         // Append CRC-32 Checksum Calculation to data frame
-        frame->checkSum = crc_32(frame);
+        uLongToBinary(crc_32(frame), checkSumBin);
+        frameData(frame, checkSumBin, CHECKSUM);
 
         // Error Creation Module
         if(mode == ERROR_ON) {
