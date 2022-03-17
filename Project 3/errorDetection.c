@@ -30,6 +30,28 @@ unsigned long crc_32(struct dataFrame* frame) {
 }
 
 /**
+ * Function that converts an unsigned long to its corresponding 32-bit binary representation 
+ */
+char* uLongToBinary(unsigned long value, char* result) {
+    char binaryStr[33] = "00000000000000000000000000000000";
+
+    for(int i = 31, j = 0; i >= 0 && j < 32; i--, j++)
+        if((value >> i) & 1)
+            binaryStr[j] = '1';
+    binaryStr[33] = '\0';
+    strcpy(result, binaryStr);
+
+    return result;
+}
+
+/**
+ * Function that converts a 32-bit binary string to its unsigned long value
+ */
+unsigned long longBinaryToLong(const char* string) {
+    return (long)strtoll(string, NULL, 2);
+}
+
+/**
  * Function that calculates the Hamming code of a dataframe and perform single-bit error correction if needed
  */
 void hamming(struct dataFrame* frame) {
