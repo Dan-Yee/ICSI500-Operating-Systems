@@ -26,17 +26,19 @@ void consumer(enum detectionMode mode) {
 
         // Check for Transmission Errors using CRC-32
         if(mode == CRC) {
-            unsigned long oldCRC = frame->checkSum;
+            unsigned long oldCRC = longBinaryToLong(deframeData(frame, CHECKSUM));
             unsigned long newCRC = crc_32(frame);
 
             if(oldCRC != newCRC) {
                 printf("Transmission Error Detected in Frame: \n");
                 printf("Expected CRC-32 Checksum: %ld\n", oldCRC);
-                printf("CRC of Received Message: %ld\n", newCRC);
+                printf("CRC of Received Message: %ld\n\n", newCRC);
                 displayFrame(*frame);
                 printf("\n");
             }
         }
+
+        // Check for Transmission Errors and perform single-bit error correction using Hamming
 
         int length = binaryToInt(removeParityBit(msgLength));                                       // decode the message length
         char currentChar[9];
