@@ -9,6 +9,7 @@
  * Mode SYN: SYN Code (2222)
  * Mode LENGTH: Message Length
  * Mode MESSAGE: Encoded Message
+ * Mode CHECKSUM: CRC-32 Checksum
  */
 void frameData(struct dataFrame* frame, char* binaryStr, enum dataEncoding mode) {
     switch(mode) {
@@ -20,6 +21,9 @@ void frameData(struct dataFrame* frame, char* binaryStr, enum dataEncoding mode)
             break;
         case MESSAGE:
             strcat(frame->message, binaryStr);
+            break;
+        case CHECKSUM:
+            strcpy(frame->checkSum, binaryStr);
             break;
         default:
             perror("Invalid Mode Specified. Expected: SYN or LENGTH or MESSAGE or CHECKSUM\n");
@@ -33,7 +37,7 @@ void frameData(struct dataFrame* frame, char* binaryStr, enum dataEncoding mode)
  * Mode SYN: SYN Code (2222)
  * Mode LENGTH: Message Length
  * Mode MESSAGE: Encoded Message
- * Mode CHECKSUM: The checksum calculated using CRC-32
+ * Mode CHECKSUM: CRC-32 Checksum
  */
 char* deframeData(struct dataFrame* frame, enum dataEncoding mode) {
     switch(mode) {
@@ -45,6 +49,9 @@ char* deframeData(struct dataFrame* frame, enum dataEncoding mode) {
             break;
         case MESSAGE:
             return frame->message;
+            break;
+        case CHECKSUM:
+            return frame->checkSum;
             break;
         default:
             perror("Invalid Mode Specified. Expected: SYN or LENGTH or MESSAGE or CHECKSUM\n");
@@ -60,5 +67,5 @@ void displayFrame(struct dataFrame frame) {
     printf("SYN Char: %s\n", frame.synChar);
     printf("Message Length: %s\n", frame.messageLength);
     printf("Encoded Message: %s\n", frame.message);
-    printf("Checksum: %ld\n", frame.checkSum);
+    printf("Checksum: %s\n", frame.checkSum);
 }
