@@ -3,7 +3,7 @@
  */
 #include "dataFrame.h"
 #include "data.h"
-#include "errorDetection.h"
+#include "crc.h"
 #include <stdio.h>
 
 #ifndef PRODUCER_HEADER
