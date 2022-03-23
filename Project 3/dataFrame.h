@@ -15,12 +15,11 @@
 struct dataFrame {
     char synChar[17];
     char messageLength[9];
-    char message[((64 * 8) + 1)];
+    char message[((64 * 8) + 1) + 10];
     char checkSum[33];
-    char hammingCodeMessage[((64 * 8) + 1) + 10];
 };
 
-enum dataEncoding {SYN, LENGTH, MESSAGE, CHECKSUM, HAMMINGCODE};
+enum dataEncoding {SYN, LENGTH, MESSAGE, CHECKSUM};
 
 /**
  * Function to framing data together based on mode
