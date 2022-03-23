@@ -1,13 +1,13 @@
 /**
  * Implementation of the Consumer (Receiver)
  */
-#include "application.h"
 #include "consumer.h"
 
 void consumer(enum detectionMode mode) {
     struct dataFrame* frame = malloc(sizeof(struct dataFrame));
     FILE* consumerNormalOutput = fopen("cOutput.outf", "w");
     FILE* consumerUppercaseOutput = fopen("cUppercase.outf", "w");
+    int frameCount = 0;
 
     if(consumerNormalOutput == NULL) {
         perror("Error Opening Consumer Normal Output File\n");
@@ -23,6 +23,7 @@ void consumer(enum detectionMode mode) {
         char* synCode = deframeData(frame, SYN);                                                    // deframe the data frame
         char* msgLength = deframeData(frame, LENGTH);
         char* message = deframeData(frame, MESSAGE);
+        frameCount++;
 
         // Check for Transmission Errors using CRC-32
         if(mode == CRC) {
@@ -30,15 +31,19 @@ void consumer(enum detectionMode mode) {
             unsigned long newCRC = crc_32(frame);
 
             if(oldCRC != newCRC) {
-                printf("Transmission Error Detected in Frame: \n");
+                printf("Transmission Error Detected in Frame: %d\n", frameCount);
                 printf("Expected CRC-32 Checksum: %ld\n", oldCRC);
-                printf("CRC of Received Message: %ld\n\n", newCRC);
+                printf("CRC-32 of Received Message: %ld\n\n", newCRC);
                 displayFrame(*frame);
                 printf("\n");
             }
+        } else if(mode == HAMMING) {
+            hammingCode(frame, CONSUMER);
+            removeRedundantBits(frame);
+        } else {
+            perror("Error Detection Mode Not Recognized, expected CRC or HAMMING\n");
+            exit(-1);
         }
-
-        // Check for Transmission Errors and perform single-bit error correction using Hamming
 
         int length = binaryToInt(removeParityBit(msgLength));                                       // decode the message length
         char currentChar[9];
