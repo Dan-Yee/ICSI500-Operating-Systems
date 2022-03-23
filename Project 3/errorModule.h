@@ -2,6 +2,7 @@
  * Specifications on the implementation of the Error Creation Module
  */
 #include <time.h>
+#include <stdio.h>
 #include "dataFrame.h"
 
 #ifndef ERROR_HEADER
