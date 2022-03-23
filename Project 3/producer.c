@@ -1,11 +1,9 @@
 /**
  * Implementation of the Producer (Transmitter)
  */
-#include "application.h"
 #include "producer.h"
-#include "errorModule.h"
 
-void producer(char* fileName, enum producerMode mode, int numOfErrors) {
+void producer(char* fileName, enum producerMode mode, int numOfErrors, enum detectionMode dMode) {
     srand(time(0));
     struct dataFrame* frame;
     char readBuffer[64];
@@ -26,7 +24,6 @@ void producer(char* fileName, enum producerMode mode, int numOfErrors) {
     while(!feof(userInput)) {                                                                   // read until end of input file
         char synCode[17] = "\0";
         char msgLength[9] = "\0";
-        char checkSumBin[33] = "\0";
         frameCount++;
         frame = malloc(sizeof(struct dataFrame));
 
@@ -48,9 +45,18 @@ void producer(char* fileName, enum producerMode mode, int numOfErrors) {
         }
         frameData(frame, "\0", MESSAGE);
 
-        // Append CRC-32 Checksum Calculation to data frame
-        uLongToBinary(crc_32(frame), checkSumBin);
-        frameData(frame, checkSumBin, CHECKSUM);
+        if(dMode == CRC) {                                                                      // Append CRC-32 Checksum Calculation to data frame
+            char checkSumBin[33] = "\0";
+            uLongToBinary(crc_32(frame), checkSumBin);
+            frameData(frame, checkSumBin, CHECKSUM);
+        } else if(dMode == HAMMING) {                                                           // modify the message to contain parity bits for hamming code
+            insertRedundantBits(frame);
+            hammingCode(frame, PRODUCER);
+            frameData(frame, "CRC-32 Not Used\0", CHECKSUM);
+        } else {
+            perror("Error Detection Mode Not Recognized, expected CRC or HAMMING\n");
+            exit(-1);
+        }
 
         // Error Creation Module
         if(mode == ERROR_ON) {
