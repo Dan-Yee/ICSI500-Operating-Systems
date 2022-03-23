@@ -51,34 +51,3 @@ char* uLongToBinary(unsigned long value, char* result) {
 unsigned long longBinaryToLong(const char* string) {
     return (long)strtoll(string, NULL, 2);
 }
-
-/**
- * Function that calculates the Hamming code of a dataframe and perform single-bit error correction if needed
- */
-void hamming(struct dataFrame* frame) {
-    // even parity = 0
-    // odd parity = 1
-    // maximum number of parity bits 8: 2^8 = 256, i.e., check 256 skip 256 which will be past end of maximum message length of 512
-    int currentParityBits[9] = {0, 0, 0, 0, 0, 0, 0, 0, 0};            // parity bits at indices: 0, 1, 3, 7, 15, 31, 63, 
-    int hammingParityBits[9] = {0, 0, 0, 0, 0, 0, 0, 0, 0};
-    char* data = deframeData(frame, MESSAGE);
-
-    // get current parity bits from data (message)
-    for(int i = 0; i < sizeof(currentParityBits) / 4; i++) {
-        int position = pow(2, i);
-
-        if(position >= strlen(data))
-            break;
-        if(data[position - 1] == '1')
-            currentParityBits[i] = 1;
-    }
-
-    // calculate parity bits of data (message) using Hamming
-
-    for(int j = 0; j < sizeof(currentParityBits) / 4; j++) {
-        printf("%d", currentParityBits[j]);
-    }
-    printf("\n");
-
-    //printf("%s\n", frame->message);
-}
