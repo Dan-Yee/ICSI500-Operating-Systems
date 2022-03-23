@@ -10,9 +10,6 @@ void insertRedundantBits(struct dataFrame* frame) {
     int dataLength = binaryToInt(removeParityBit(deframeData(frame, LENGTH))) * 8;
     int numOfBits = calcNumOfRedundant(dataLength);
     char* data = deframeData(frame, MESSAGE);
-    char dataCopy[523];
-
-    strncpy(dataCopy, &data[0], 523);                                       // copy the message to prevent changes to the original message due to the use of pointers
 
     for(int i = 0; i < numOfBits; i++) {
         int position = (int)(pow(2, i) - 1);
@@ -21,8 +18,8 @@ void insertRedundantBits(struct dataFrame* frame) {
         char result[523] = "\0";
 
         // split the data bits in half at the position where the redundant bit goes
-        strncpy(leftOfPosition, &dataCopy[0], position);
-        strncpy(rightOfPosition, &dataCopy[position], 512);
+        strncpy(leftOfPosition, &data[0], position);
+        strncpy(rightOfPosition, &data[position], 512);
 
         // insert the redundant parity bit represented by 'p'
         strcat(result, leftOfPosition);
@@ -30,9 +27,22 @@ void insertRedundantBits(struct dataFrame* frame) {
         strcat(result, rightOfPosition);
 
         // update dataCopy to contain the most recently inserted redundant parity bit
-        strcpy(dataCopy, result);
+        strcpy(data, result);
     }
-    frameData(frame, dataCopy, HAMMINGCODE);
+}
+
+/**
+ * Function that removes redundant bits inserted earlier by Hamming code
+ */
+void removeRedundantBits(struct dataFrame* frame) {
+    int dataLength = binaryToInt(removeParityBit(deframeData(frame, LENGTH))) * 8;
+    int numOfBits = calcNumOfRedundant(dataLength);
+    char* data = deframeData(frame, MESSAGE);
+
+    for(int parityCount = 0; parityCount < numOfBits; parityCount++) {
+        int position = (int)pow(2, parityCount) - parityCount - 1;                                                                  // subtract parityCount to account for each parity bit removed before the next
+        memmove(&data[position], &data[position + 1], strlen(data) - position);
+    }
 }
 
 /**
@@ -50,11 +60,13 @@ int calcNumOfRedundant(int dataLength) {
 /**
  * Function that calculates the parity of each redundant bit 'p' and sets it to 0 if even or 1 if odd
  * Used by the Producer to calculate the Hamming code word prior to transmission
+ * Used by the Consumder to recalculate the Hamming code word after transmission
  */
-void producerHammingCode(struct dataFrame* frame) {
+void hammingCode(struct dataFrame* frame, enum executor executeMode) {
     int dataLength = binaryToInt(removeParityBit(deframeData(frame, LENGTH))) * 8;
     int numOfParityBits = calcNumOfRedundant(dataLength);
-    char* hammingData = deframeData(frame, HAMMINGCODE);
+    char* hammingData = deframeData(frame, MESSAGE);
+    int errorBitPosition = 0;
 
     for(int parityCount = 0; parityCount < numOfParityBits; parityCount++) {                                                        // controls which parity bit we are current looking at
         int checkAmount = (int)pow(2, parityCount);
@@ -63,15 +75,30 @@ void producerHammingCode(struct dataFrame* frame) {
         for(int messageLoop = checkAmount - 1; messageLoop < dataLength + numOfParityBits; messageLoop += checkAmount * 2) {        // iterates through the entire message, skipping unchecked bits
             for(int parityCheck = 0; parityCheck < checkAmount; parityCheck++) {                                                    // iterates through the message, checking bits
                 int bitPosition = messageLoop + parityCheck;
-                if(hammingData[bitPosition] == 'p' || hammingData[bitPosition] == '0')
-                    continue;
-                else if(hammingData[bitPosition] == '1')
+
+                if(hammingData[bitPosition] == '1')
                     parity++;
             }
         }
-        if((parity % 2) == 0)                                                                                                       // updates the redundant parity bit placeholder 'p'
-            hammingData[checkAmount - 1] = '0';
-        else
-            hammingData[checkAmount - 1] = '1';
+        if(hammingData[checkAmount - 1] == '1') parity--;                                                                           // do not include redundant bit in parity count
+
+        if(executeMode == PRODUCER)
+            hammingData[checkAmount - 1] = ((parity % 2) == 0) ? '0' : '1';                                                         // updates the redundant parity bit placeholder 'p'
+        else if(executeMode == CONSUMER) {
+            char recalculatedParity = ((parity % 2) == 0) ? '0' : '1';
+
+            if(hammingData[checkAmount - 1] != recalculatedParity)                                                                  // update the position of the incorrect bit
+                errorBitPosition += checkAmount;
+        } else {
+            perror("Execution Mode Not Recognized, expected PRODUCER or CONSUMER\n");
+            exit(-1);
+        }
+    }
+    if(executeMode == CONSUMER) {                                                                                                   // determine the position of the incorrect bit excluding redundant self
+        errorBitPosition--;
+        if(errorBitPosition > 0 && errorBitPosition < (dataLength + numOfParityBits)) {
+            printf("Hamming Code: Error Detected at Bit %d. Error Corrected!\n", errorBitPosition); 
+            hammingData[errorBitPosition] = (hammingData[errorBitPosition] == '1') ? '0' : '1';                                     // flip the incorrect bit to correct it
+        }
     }
 }

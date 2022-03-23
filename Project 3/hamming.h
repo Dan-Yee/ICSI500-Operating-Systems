@@ -8,10 +8,17 @@
 #ifndef HAMMING_HEADER
 #define HAMMING_HEADER
 
+enum executor {PRODUCER, CONSUMER};
+
 /**
  * Function that inserts redundant parity bits as 'p', prior to parity calculation
  */
 void insertRedundantBits(struct dataFrame*);
+
+/**
+ * Function that removes redundant bits inserted earlier by Hamming code
+ */
+void removeRedundantBits(struct dataFrame*);
 
 /**
  * Function that calculates the number of redundant parity bits required for Hamming code based on the length of the message
@@ -23,6 +30,6 @@ int calcNumOfRedundant(int);
  * Function executed by the Producer to calculate the hamming code word prior to "transmission"
  * This function switches all the 'p''s inserted by insertRedundantBits(...) to it's correct parity
  */
-void producerHammingCode(struct dataFrame*);
+void hammingCode(struct dataFrame*, enum executor);
 
 #endif
