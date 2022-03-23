@@ -5,7 +5,6 @@
 #include "application.h"
 #include "producer.h"
 #include "consumer.h"
-#include "errorDetection.h"
 
 #include <stdio.h>
 #include <sys/types.h>
@@ -49,13 +48,26 @@ int main(int argc, char** argv) {
     if(pid > 0) {                                                           // PARENT PROCESS - used to execute the Producer
         close(communicationPipe[0]);                                        // close the reading end of the pipe
         if(argc == 5) {
-            if(strtol(argv[2], NULL, 10) == 1) {                   // enable Error Creation Module with a variable number of errors introduced to each frame
-                printf("Producer running with Error Creation module ENABLED, introducing %s bit errors for each even frame\n\n", argv[2]);
-                printf("Input File Name: %s\n", argv[1]);
-                producer(argv[1], ERROR_ON, strtol(argv[3], NULL, 10));
+            if(strcmp(argv[2], "ERRORON") == 0) {                   // enable Error Creation Module with a variable number of errors introduced to each frame
+                if(strcmp(argv[4], "HAMMING") == 0) {
+                    printf("Producer running using HAMMING CODE with Error Creation module ENABLED, introducing %s bit errors for each even frame\n", argv[3]);
+                    printf("Input File Name: %s\n\n", argv[1]);
+                    producer(argv[1], ERROR_ON, strtol(argv[3], NULL, 10), HAMMING);
+                } else {
+                    printf("Producer running using CRC-32 with Error Creation module ENABLED, introducing %s bit errors for each even frame\n", argv[3]);
+                    printf("Input File Name: %s\n\n", argv[1]);
+                    producer(argv[1], ERROR_ON, strtol(argv[3], NULL, 10), CRC);
+                }
             } else {
-                printf("Producer running with Error Creation module DISABLED\n\n");
-                producer(argv[1], ERROR_OFF, 0);
+                if(strcmp(argv[4], "HAMMING") == 0) {
+                    printf("Producer running using HAMMING CODE with Error Creation module DISABLED\n");
+                    printf("Input File Name: %s\n\n", argv[1]);
+                    producer(argv[1], ERROR_OFF, 0, HAMMING);
+                } else {
+                    printf("Producer running using CRC-32 with Error Creation module DISABLED\n");
+                    printf("Input File Name: %s\n\n", argv[1]);
+                    producer(argv[1], ERROR_OFF, 0, CRC);
+                }
             }
         } else {
             perror("Expected number of arguments is 5\n");
@@ -66,7 +78,7 @@ int main(int argc, char** argv) {
     } else if(pid == 0) {                                                   // CHILD PROCESS - used to execute the Consumer
         close(communicationPipe[1]);                                        // close the writing end of the pipe
         if(argc == 5) {
-            if(strtol(argv[4], NULL, 10) == 1) {
+            if(strcmp(argv[4], "HAMMING") == 0) {
                 printf("Consumer running using Hamming\n");
                 consumer(HAMMING);
             } else {

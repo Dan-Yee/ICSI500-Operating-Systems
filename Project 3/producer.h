@@ -3,7 +3,8 @@
  */
 #include "dataFrame.h"
 #include "data.h"
-#include "crc.h"
+#include "errorModule.h"
+#include "application.h"
 #include <stdio.h>
 
 #ifndef PRODUCER_HEADER
@@ -14,6 +15,6 @@ enum producerMode {ERROR_OFF, ERROR_ON};                        // enum for test
 /**
  * Function to start the "transmission" based on message from data file
  */
-void producer(char*, enum producerMode, int);
+void producer(char*, enum producerMode, int, enum detectionMode);
 
 #endif
