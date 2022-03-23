@@ -10,7 +10,6 @@
  * Mode LENGTH: Message Length
  * Mode MESSAGE: Encoded Message
  * Mode CHECKSUM: CRC-32 Checksum
- * Mode HAMMINGCODE: Message with Hamming code inserted
  */
 void frameData(struct dataFrame* frame, char* binaryStr, enum dataEncoding mode) {
     switch(mode) {
@@ -25,9 +24,6 @@ void frameData(struct dataFrame* frame, char* binaryStr, enum dataEncoding mode)
             break;
         case CHECKSUM:
             strcpy(frame->checkSum, binaryStr);
-            break;
-        case HAMMINGCODE:
-            strcpy(frame->hammingCodeMessage, binaryStr);
             break;
         default:
             perror("Invalid Mode Specified. Expected: SYN or LENGTH or MESSAGE or CHECKSUM\n");
@@ -57,9 +53,6 @@ char* deframeData(struct dataFrame* frame, enum dataEncoding mode) {
         case CHECKSUM:
             return frame->checkSum;
             break;
-        case HAMMINGCODE:
-            return frame->hammingCodeMessage;
-            break;
         default:
             perror("Invalid Mode Specified. Expected: SYN or LENGTH or MESSAGE or CHECKSUM\n");
             exit(-1);
@@ -75,5 +68,4 @@ void displayFrame(struct dataFrame frame) {
     printf("Message Length: %s\n", frame.messageLength);
     printf("Encoded Message: %s\n", frame.message);
     printf("Checksum: %s\n", frame.checkSum);
-    printf("Hamming Codeword: %s\n", frame.hammingCodeMessage);
 }
