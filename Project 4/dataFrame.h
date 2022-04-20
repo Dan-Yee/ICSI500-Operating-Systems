@@ -16,7 +16,6 @@ struct dataFrame {
     char synChar[17];
     char messageLength[9];
     char message[((64 * 8) + 1) + 10];
-    char checkSum[33];
 };
 
 enum dataEncoding {SYN, LENGTH, MESSAGE};
